@@ -1,0 +1,16 @@
+{
+  "name": "proiect-web",
+  "version": "1.0.0",
+  "description": "Technologii Web",
+  "main": "script.js",
+  "scripts": {
+    "start": "node script.js"
+  },
+  "author": "Vlad Afrasinei",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "sequelize": "^6.28.0",
+    "sqlite": "^3.0.6"
+  }
+}

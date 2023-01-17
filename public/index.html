@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Proiect tehnologii web</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="center">
+        <div id="table-wrapper">
+          <div id="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Model</th>
+                  <th>Pret</th>
+                  <th>Capacitate cilindrica</th>
+                  <th>An fabricatie</th>
+                  <th>Actiuni</th>
+                </tr>
+              </thead>
+              <tbody id="cars_table"></tbody>
+            </table>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column">
+          <div
+            id="modifyForm"
+            class="collapseBox"
+            style="display: none; flex-direction: column"
+          >
+            <input type="hidden" id="modifyCarId" />
+            <input type="text" id="modifyCarModel" placeholder="Model" />
+            <input type="text" id="modifyCarPrice" placeholder="Pret" />
+            <input
+              type="text"
+              id="modifyCarCapacity"
+              placeholder="Capacitate cilindrica"
+            />
+            <input type="text" id="modifyCarYear" placeholder="An fabricatie" />
+            <button
+              style="margin-top: 10px; background: rgb(255, 130, 130)"
+              type="button"
+              id="modifySubmit"
+              class="btn"
+            >
+              Submit
+            </button>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; margin-top: 20px">
+          <button
+            style="margin-top: 10px; background: rgb(255, 130, 130)"
+            type="button"
+            class="btn"
+            id="collapseContent"
+          >
+            Add new item
+          </button>
+          <div
+            id="addForm"
+            class="collapseBox"
+            style="display: none; flex-direction: column"
+          >
+            <input type="text" id="carModel" placeholder="Model" />
+            <input type="text" id="carPrice" placeholder="Pret" />
+            <input
+              type="text"
+              id="carCapacity"
+              placeholder="Capacitate cilindrica"
+            />
+            <input type="text" id="carYear" placeholder="An fabricatie" />
+            <button
+              style="margin-top: 10px; background: rgb(255, 130, 130)"
+              type="button"
+              id="addSubmit"
+              class="btn"
+            >
+              Submit
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script>
+    const SERVER = "http://localhost:3000";
+    let cars;
+    let carTable = document.getElementById("cars_table");
+    let collapseBtn = document.getElementById("collapseContent");
+    let menuShow = false;
+    let modifyShow = false;
+
+    collapseBtn.onclick = () => {
+      if (menuShow == false) {
+        menuShow = true;
+        document.getElementById("addForm").style.display = "flex";
+      } else {
+        menuShow = false;
+        document.getElementById("addForm").style.display = "none";
+      }
+    };
+
+    const fetchCar = async (id) => {
+      try {
+        const response = await fetch(`${SERVER}/car/${id}`);
+        console.log(response);
+        if (!response.ok) {
+          throw response;
+        }
+        const data = await response.json();
+        console.log("car");
+        console.log(data);
+        return data;
+      } catch (error) {
+        console.log("error from fetch car");
+        console.warn(error);
+      }
+    };
+
+    const fetchCars = async () => {
+      try {
+        const response = await fetch(`${SERVER}/cars`);
+        if (!response.ok) {
+          throw response;
+        }
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.warn(error);
+      }
+    };
+
+    async function deleteCar(id) {
+      try {
+        const res = await fetch(`${SERVER}/car/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        if (!res.ok) {
+          throw res;
+        }
+        if (res.statusText === "Accepted") {
+          location.reload();
+        } else {
+          console.log("Something went wrong! Please try again.");
+        }
+      } catch (error) {
+        console.warn(error);
+      }
+    }
+
+    // modify inputs
+    const modifyCarModel = document.getElementById("modifyCarModel");
+    const modifyCarPrice = document.getElementById("modifyCarPrice");
+    const modifyCarCapacity = document.getElementById("modifyCarCapacity");
+    const modifyCarYear = document.getElementById("modifyCarYear");
+    const modifySubmit = document.getElementById("modifySubmit");
+    const modifyCarId = document.getElementById("modifyCarId");
+
+    async function modifyCar(id) {
+      if (modifyShow == false) {
+        modifyShow = true;
+        document.getElementById("modifyForm").style.display = "flex";
+        let car = await fetchCar(id);
+        modifyCarModel.value = car.Model;
+        modifyCarPrice.value = car.Price;
+        modifyCarCapacity.value = car.Capacity;
+        modifyCarYear.value = car.Year;
+        modifyCarId.value = car.Id;
+      } else {
+        modifyShow = false;
+        document.getElementById("modifyForm").style.display = "none";
+      }
+    }
+
+    window.onload = async () => {
+      cars = await fetchCars();
+      cars.forEach((car) => {
+        let row = carTable.insertRow(-1);
+        let cell1 = row.insertCell(0);
+        let cell2 = row.insertCell(1);
+        let cell3 = row.insertCell(2);
+        let cell4 = row.insertCell(3);
+        let cell5 = row.insertCell(4);
+        cell1.innerHTML = car.Model;
+        cell2.innerHTML = car.Price;
+        cell3.innerHTML = car.Capacity;
+        cell4.innerHTML = car.Year;
+        cell5.innerHTML = `<button class="modifica" onclick='deleteCar(${car.Id})'>Delete</button><button class="modifica" style="margin-left: 5px;" onclick='modifyCar(${car.Id})'>Modify</button>`;
+      });
+
+      const carModel = document.getElementById("carModel");
+      const carPrice = document.getElementById("carPrice");
+      const carCapacity = document.getElementById("carCapacity");
+      const carYear = document.getElementById("carYear");
+      const addSubmit = document.getElementById("addSubmit");
+
+      addSubmit.onclick = async () => {
+        try {
+          console.log("inside on submit");
+          if (
+            carModel.value == "" ||
+            carPrice.value == "" ||
+            carCapacity.value == "" ||
+            carYear.value == ""
+          ) {
+            return;
+          }
+          const payload = {
+            Model: carModel.value,
+            Price: carPrice.value,
+            Capacity: carCapacity.value,
+            Year: carYear.value,
+          };
+          await fetch(`${SERVER}/cars`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
+          location.reload();
+        } catch (e) {
+          console.warn(e);
+        }
+      };
+
+      modifySubmit.onclick = async () => {
+        try {
+          let carId = modifyCarId.value;
+          const payload = {
+            Model: modifyCarModel.value,
+            Price: modifyCarPrice.value,
+            Capacity: modifyCarCapacity.value,
+            Year: modifyCarYear.value,
+          };
+          await fetch(`${SERVER}/cars/${carId}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
+          // console.log(car)
+          location.reload();
+        } catch (e) {
+          console.warn(e);
+        }
+      };
+    };
+  </script>
+  <style>
+    #table-scroll {
+      height: 400px;
+      overflow: auto;
+      margin-top: 20px;
+    }
+    #table-wrapper table {
+      width: 100%;
+    }
+
+    table {
+      font-family: arial, sans-serif;
+      border-collapse: collapse;
+      width: 100%;
+      max-height: 200px;
+      overflow: auto;
+      background-color: rgb(255, 30, 30);
+    }
+
+    td,
+    th {
+      border: 1px solid #000000;
+      text-align: left;
+      padding: 8px;
+    }
+    button {
+      border: 0;
+      outline: 0;
+      background-color: rgb(255, 130, 130);
+      color: rgb(255, 0, 0);
+      padding: 10px 20px;
+    }
+
+    .container {
+      height: 800px;
+      position: relative;
+    }
+
+    .center {
+      margin: 0;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      -ms-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);
+    }
+
+    .btn:hover {
+      color: #ffffff;
+      cursor: pointer;
+    }
+
+    .collapseBox {
+      background: rgb(255, 0, 0);
+      padding: 20px;
+      gap: 10px;
+    }
+    .modifica:hover {
+      color: rgb(255, 255, 255);
+      cursor: pointer;
+    }
+
+    body {
+      background-image: url("car.jpg");
+      background-size: cover;
+    }
+  </style>
+</html>
